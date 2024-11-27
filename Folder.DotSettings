@@ -1,0 +1,51 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Applicability/=File/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/CustomProperties/=Category/@EntryIndexedValue">Primary</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/CustomProperties/=Extension/@EntryIndexedValue">fs</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/CustomProperties/=FileName/@EntryIndexedValue">Module</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/CustomProperties/=ValidateFileName/@EntryIndexedValue">False</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Description/@EntryValue">AoC Solution</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Image/@EntryValue">FSharp</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Text/@EntryValue">$MODULE_OR_NAMESPACE$ $NAMESPACE$.$MODULE$
+
+let part1 = (fun _ -&gt; 0)
+
+let part2 = (fun _ -&gt; 0)
+
+let run = runReadAllLines part1 part2
+
+module tests =
+    open Swensen.Unquote
+    open Xunit
+
+    let example1 = null
+
+    [&lt;Fact&gt;]
+    let ``Part 1 example`` () = part1 example1 =! -1
+
+    let example2 = null
+
+    [&lt;Fact&gt;]
+    let ``Part 2 example`` () = part2 example2 =! -1
+
+$END$</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/UITag/@EntryValue">File</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE/Expression/@EntryValue">getAlphaNumericFileNameWithoutExtension()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE_005FOR_005FNAMESPACE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE_005FOR_005FNAMESPACE/Expression/@EntryValue">list("module,namespace")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=MODULE_005FOR_005FNAMESPACE/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=NAMESPACE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=NAMESPACE/Expression/@EntryValue">fileDefaultNamespace()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=NAMESPACE/InitialRange/@EntryValue">-1</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Field/=NAMESPACE/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Scope/=929F471236FCBD4C9D43568E3AB6CDD0/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=785545B7C1772942A07F2AB21CD5A65E/Scope/=929F471236FCBD4C9D43568E3AB6CDD0/Type/@EntryValue">InFSharpProjectScope</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=586C0E2863C5DF429BD32ABEC2F436B2/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=586C0E2863C5DF429BD32ABEC2F436B2/Entry/=785545B7C1772942A07F2AB21CD5A65E/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=586C0E2863C5DF429BD32ABEC2F436B2/Entry/=785545B7C1772942A07F2AB21CD5A65E/EntryName/@EntryValue">Source file</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/QuickList/=586C0E2863C5DF429BD32ABEC2F436B2/Entry/=785545B7C1772942A07F2AB21CD5A65E/Position/@EntryValue">4</s:Int64></wpf:ResourceDictionary>

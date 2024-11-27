@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>aoc24</RootNamespace>
+        <GenerateProgramFile>false</GenerateProgramFile>
+        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen --test:DumpCheckingGraph </OtherFlags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FSharp.Stats" Version="0.5.0" />
+        <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+        <PackageReference Include="Plotly.NET" Version="5.1.0" />
+        <PackageReference Include="Spectre.Console" Version="0.49.1" />
+        <PackageReference Include="Unquote" Version="7.0.0" />
+        <PackageReference Include="xunit" Version="2.9.2" />
+        <PackageReference Include="FSharp.Text.RegexProvider" Version="2.1.0" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="Properties\launchSettings.json" />
+        <None Include=".gitignore" />
+        <None Include=".env*" />
+        <None Include="README.md" />
+        <None Include="inputs/*" />
+        <Compile Include="Prelude.fs" />
+        <Compile Include="Day*.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+    
+</Project>
