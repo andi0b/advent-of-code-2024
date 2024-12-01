@@ -1,75 +1,45 @@
-﻿module aoc24.Day01
+module aoc24.Day01
 
-// This is still 2023/Day 1
+let parse =
+    Array.map (fun l ->
+        let parts = l |> StringEx.splitS "   "
+        (int parts[0], int parts[1]))
+    >> Array.unzip
 
-open System
+let part1 input =
+    let sortedPairs =
+        input |> parse |> TupleEx.map Array.sort |> TupleEx.apply Array.zip
 
-module CalibrationValue =
+    (0, sortedPairs)
+    ||> Array.fold (fun acc pairs -> acc + (pairs |> TupleEx.apply (-) |> abs))
 
-    let fromDigits (line: string) =
-        let chars = line.ToCharArray()
-        let firstDigit = chars |> Array.find Char.IsDigit
-        let lastDigit = chars |> Array.findBack Char.IsDigit
-        $"{firstDigit}{lastDigit}" |> int
+let part2 input =
+    let left, right = parse input
 
-    let words =
-        [ ("one", 1)
-          ("two", 2)
-          ("three", 3)
-          ("four", 4)
-          ("five", 5)
-          ("six", 6)
-          ("seven", 7)
-          ("eight", 8)
-          ("nine", 9)
-          ("1", 1)
-          ("2", 2)
-          ("3", 3)
-          ("4", 4)
-          ("5", 5)
-          ("6", 6)
-          ("7", 7)
-          ("8", 8)
-          ("9", 9) ]
+    let counts =
+        right |> Array.groupBy id |> Array.map (TupleEx.mapSnd Array.length) |> Map
 
-    type SearchMode =
-        | First
-        | Last
+    (0, left)
+    ||> Array.fold (fun acc left ->
+        let rightCounts = counts |> Map.tryFind left |> Option.defaultValue 0
+        acc + left * rightCounts)
 
-    let findValue searchMode line =
-
-        let indexOfFunc, minOrMaxBy =
-            match searchMode with
-            | First -> (StringEx.indexOf, List.minBy)
-            | Last -> (StringEx.lastIndexOf, List.maxBy)
-
-        let findValueWithIndex (searchTerm, value) =
-            line
-            |> indexOfFunc searchTerm
-            |> Option.map (fun index -> {| index = index; value = value |})
-
-        (words |> List.choose findValueWithIndex |> minOrMaxBy _.index).value
-
-    let fromWordsAndDigits (line: string) =
-        let first = line |> findValue First
-        let last = line |> findValue Last
-        first * 10 + last
-
-let part1 = Seq.map CalibrationValue.fromDigits >> Seq.sum
-let part2 = Seq.map CalibrationValue.fromWordsAndDigits >> Seq.sum
 let run = runReadAllLines part1 part2
 
 module tests =
     open Swensen.Unquote
     open Xunit
 
-    let example1 = null
+    let example =
+        [| "3   4" //
+           "4   3"
+           "2   5"
+           "1   3"
+           "3   9"
+           "3   3" |]
 
     [<Fact>]
-    let ``Part 1 example`` () = part1 example1 =! -1
-
-    let example2 = null
+    let ``Part 1 example`` () = part1 example =! 11
 
     [<Fact>]
-    let ``Part 2 example`` () = part2 example2 =! -1
-
+    let ``Part 2 example`` () = part2 example =! 31

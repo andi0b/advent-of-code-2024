@@ -6,7 +6,7 @@ open System.Threading.Tasks
 open FSharp.Text.RegexProvider
 open aoc24
 
-let year = "2023"
+let year = "2024"
 let inputDirectory = "inputs"
 let inputPath day =
     Path.Combine(inputDirectory, $"day%02u{day}.txt")
