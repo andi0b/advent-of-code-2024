@@ -11,7 +11,7 @@ let part1 input =
         input |> parse |> TupleEx.map Array.sort |> TupleEx.apply Array.zip
 
     (0, sortedPairs)
-    ||> Array.fold (fun acc pairs -> acc + (pairs |> TupleEx.apply (-) |> abs))
+    ||> Array.fold (fun acc pair -> acc + (pair |> TupleEx.apply (-) |> abs))
 
 let part2 input =
     let left, right = parse input
