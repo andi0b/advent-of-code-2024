@@ -16,7 +16,7 @@ let parseEnabledMuls input =
     |> Seq.map _.enabledOps.Value
     |> Seq.collect parseMuls
 
-let mulSums = 0 |> Seq.fold (fun acc (a, b) -> acc + a * b)
+let mulSums = Seq.sumBy (TupleEx.apply (*))
 
 let part1 input = input |> parseMuls |> mulSums
 let part2 input = input |> parseEnabledMuls |> mulSums
