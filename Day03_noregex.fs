@@ -2,11 +2,13 @@ module aoc24.Day03noregex
 
 open System
 
+/// Matches a single digit char and returns it's int value
 let (|Digit|_|) =
     function
     | c when Char.IsAsciiDigit c -> Some(int c - int '0')
     | _ -> None
 
+/// matches a 1-3 digit number with a delimiter, for example '123,' or '2)'
 let (|Number|_|) delim =
     function
     | Digit a :: Digit b :: Digit c :: x :: tail when x = delim -> Some(a * 100 + b * 10 + c, tail)
@@ -14,6 +16,7 @@ let (|Number|_|) delim =
     | Digit a :: x :: tail when x = delim -> Some(a, tail)
     | _ -> None
 
+/// matches a 'mul(a,b)' and returns a, b and the remaining characters after
 let (|Mul|_|) =
     function
     | 'm' :: 'u' :: 'l' :: '(' :: Number ',' (a, tail) ->
@@ -25,35 +28,41 @@ let (|Mul|_|) =
 let mulSums = Seq.sumBy (TupleEx.apply (*))
 
 let part1 input =
-    let rec parse input output =
-        match input with
-        | Mul(a, b, tail) -> parse tail ((a, b) :: output)
+    let rec parse output =
+        function
+        | Mul(a, b, tail) -> parse ((a, b) :: output) tail
+        | _ :: tail -> parse output tail
         | [] -> output
-        | _ :: tail -> parse tail output
 
-    let muls = parse (input |> List.ofSeq) []
+    let muls = input |> List.ofSeq |> parse []
     muls |> mulSums
 
+/// matches 'do()' and returns the remaining characters after
 let (|Do|_|) =
     function
     | 'd' :: 'o' :: '(' :: ')' :: tail -> Some tail
     | _ -> None
 
+/// matches 'don't()' and returns the remaining characters after
 let (|Dont|_|) =
     function
     | 'd' :: 'o' :: 'n' :: ''' :: 't' :: '(' :: ')' :: tail -> Some tail
     | _ -> None
 
-let part2 input =
-    let rec parse input output enabled =
-        match input with
-        | Do tail -> parse tail output true
-        | Dont tail -> parse tail output false
-        | Mul(a, b, tail) when enabled -> parse tail ((a, b) :: output) enabled
-        | [] -> output
-        | _ :: tail -> parse tail output enabled
+type DoState =
+    | Enabled
+    | Disabled
 
-    let muls = parse (input |> List.ofSeq) [] true
+let part2 input =
+    let rec parse output doState =
+        function
+        | Do tail -> parse output Enabled tail
+        | Dont tail -> parse output Disabled tail
+        | Mul(a, b, tail) when doState.IsEnabled -> parse ((a, b) :: output) doState tail
+        | _ :: tail -> parse output doState tail
+        | [] -> output
+
+    let muls = input |> List.ofSeq |> parse [] Enabled
     muls |> mulSums
 
 module tests =
