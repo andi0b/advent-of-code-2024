@@ -1,12 +1,19 @@
 ﻿{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "advent-of-code-2024": {
+    "all days": {
       "commandName": "Project",
       "workingDirectory": "$(ProjectDir)",
       "dotnetRunMessages": "true",
       "environmentVariables": {
-        
+      }
+    },
+    "latest": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)",
+      "dotnetRunMessages": "true",
+      "commandLineArgs": "latest",
+      "environmentVariables": {
       }
     }
   }
