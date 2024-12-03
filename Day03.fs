@@ -3,12 +3,12 @@ module aoc24.Day03
 open FSharp.Text.RegexProvider
 open FSharp.Text.RegexExtensions
 
-type MulRegex = Regex< @"mul\((\d+),(\d+)\)" >
+type MulRegex = Regex< @"mul\((?<factor1>\d+),(?<factor2>\d+)\)" >
 type DoRegex = Regex< @"(?s)(?:do\(\)|^)(?<enabledOps>.*?)(?:don't\(\)|$)" >
 
 let parseMuls input =
     let matches = MulRegex().TypedMatches(input)
-    matches |> Seq.map (fun m -> (m.``1``.AsInt, m.``2``.AsInt))
+    matches |> Seq.map (fun m -> (m.factor1.AsInt, m.factor2.AsInt))
 
 let parseEnabledMuls input =
     let enabledParts = DoRegex().TypedMatches(input)
