@@ -46,9 +46,10 @@ let part2 input =
     input |> parse UserState.Default |> mulSums
 
 
+open Swensen.Unquote
+open Xunit
+
 module tests =
-    open Swensen.Unquote
-    open Xunit
 
     let example1 =
         "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
@@ -69,3 +70,19 @@ module tests =
     [<Fact>]
     let ``Part 2 realworld`` () =
         System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part2 =! 75920122
+
+module ``FParsec Tests`` =
+
+    let test parser input =
+        runParserOnString parser UserState.Default "" input
+        |> function
+            | Success(result, _, _) -> Result.Ok result
+            | Failure(msg, _, _) -> Result.Error msg
+
+    [<Fact>]
+    let ``Test mul(123,456)`` () =
+        test mul "mul(123,456)" =! Result.Ok(123, 456)
+
+    [<Fact>]
+    let ``Test mul(123,456`` () =
+        test mul "mul(123,456]" <>! Result.Ok(123, 456)

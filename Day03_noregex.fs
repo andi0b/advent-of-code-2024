@@ -80,6 +80,10 @@ module tests =
     [<InlineData("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()\n?mul(8,5))")>]
     let ``Part 2 example`` (input) = part2 input =! 48
 
+    [<Fact>]
+    let ``Part 1 realworld`` () =
+        System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part1 =! 156388521
+
 
     [<Fact>]
     let ``Part 2 realworld`` () =
