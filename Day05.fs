@@ -1,35 +1,23 @@
 module aoc24.Day05
 
-module Rule =
-    type T = Rule of int * int
-    let create value = Rule value
-    let value (Rule(a, b)) = (a, b)
-    let fst (Rule(a, _)) = a
-    let snd (Rule(_, b)) = b
-
 module Pages =
-    type T = Pages of int list
-    let create value = Pages value
-    let value (Pages p) = p
-    let middle (Pages p) = p[p.Length / 2]
+    let middle (p: int list) = p[p.Length / 2]
 
 let parse input =
     let parseRules =
-        Seq.map (StringEx.splitC '|' >> (fun p -> (int p.[0], int p.[1]) |> Rule.create))
-        >> Seq.toList
+        Seq.map (StringEx.splitC '|' >> (fun p -> (int p.[0], int p.[1]))) >> Seq.toList
 
     let parsePages =
-        Seq.map (StringEx.splitC ',' >> Seq.map int >> List.ofSeq >> Pages.create)
-        >> Seq.toList
+        Seq.map (StringEx.splitC ',' >> Seq.map int >> Seq.toList) >> Seq.toList
 
     let splitAt = input |> Array.findIndex ((=) "")
     (parseRules input.[0 .. splitAt - 1], parsePages input.[splitAt + 1 ..])
 
-g
 let part1 input =
+
     let rules, pages = parse input
 
-    let ruleMap = rules |> List.groupBy Rule.snd |> Map
+    let ruleMap = rules |> List.groupBy snd |> Map
 
     let findBrokenRules pages =
         let rec loop pNums brokenRules =
@@ -38,21 +26,37 @@ let part1 input =
                 let matchingRules = ruleMap |> Map.tryFind cur |> Option.defaultValue []
 
                 let brokenMatchingRules =
-                    matchingRules
-                    |> List.filter (fun rule -> tail |> List.contains (rule |> Rule.fst))
+                    matchingRules |> List.filter (fun rule -> tail |> List.contains (rule |> fst))
 
                 loop tail (brokenMatchingRules @ brokenRules)
 
             | [] -> brokenRules
 
-        loop (pages |> Pages.value) []
+        loop pages []
 
     pages
     |> List.filter (fun p -> (findBrokenRules p |> List.length) = 0)
     |> List.sumBy Pages.middle
 
 
-let part2 = (fun _ -> 0)
+let part2 input =
+    let rules, pagesList = parse input
+
+    let comparer a b =
+        if rules |> List.contains (a, b) then -1
+        elif rules |> List.contains (b, a) then 1
+        else 0
+
+    let sortedPagesList = pagesList |> List.map (List.sortWith comparer)
+
+    let correctedPagesList =
+        List.zip pagesList sortedPagesList
+        |> List.choose (function
+            | original, sorted when original <> sorted -> Some sorted
+            | _ -> None)
+
+    correctedPagesList |> List.sumBy Pages.middle
+
 
 let run = runReadAllLines part1 part2
 
@@ -60,7 +64,7 @@ module tests =
     open Swensen.Unquote
     open Xunit
 
-    let example1 =
+    let example =
         [| "47|53"
            "97|13"
            "97|61"
@@ -92,16 +96,14 @@ module tests =
 
     [<Fact>]
     let ``Parse example`` () =
-        let rules, pages = parse example1
-        Seq.head rules =! Rule.create (47, 53)
-        Seq.last rules =! Rule.create (53, 13)
-        Seq.head pages =! Pages.create [ 75; 47; 61; 53; 29 ]
-        Seq.last pages =! Pages.create [ 97; 13; 75; 29; 47 ]
+        let rules, pages = parse example
+        Seq.head rules =! (47, 53)
+        Seq.last rules =! (53, 13)
+        Seq.head pages =! [ 75; 47; 61; 53; 29 ]
+        Seq.last pages =! [ 97; 13; 75; 29; 47 ]
 
     [<Fact>]
-    let ``Part 1 example`` () = part1 example1 =! 143
-
-    let example2 = null
+    let ``Part 1 example`` () = part1 example =! 143
 
     [<Fact>]
-    let ``Part 2 example`` () = part2 example2 =! 123
+    let ``Part 2 example`` () = part2 example =! 123
