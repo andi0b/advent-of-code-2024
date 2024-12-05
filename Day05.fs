@@ -42,9 +42,11 @@ let part1 input =
 let part2 input =
     let rules, pagesList = parse input
 
+    let rulesSet = rules |> Set
+
     let comparer a b =
-        if rules |> List.contains (a, b) then -1
-        elif rules |> List.contains (b, a) then 1
+        if rulesSet |> Set.contains (a, b) then -1
+        elif rulesSet |> Set.contains (b, a) then 1
         else 0
 
     let sortedPagesList = pagesList |> List.map (List.sortWith comparer)
