@@ -62,19 +62,20 @@ let getStartCursor input =
     { position = start
       direction = Cursor.directions.Head }
 
+let walkPath cursor input =
+    cursor
+    |> List.unfold (fun state ->
+        match input |> Grid.tryAt state.position with
+        | ValueSome('^' | '.') -> Some(state, state |> Cursor.walk)
+        | ValueSome '#' ->
+            let backtracked = state |> Cursor.walkBack
+            Some(backtracked, backtracked |> Cursor.turnRight)
+        | ValueNone -> None
+        | ValueSome c -> failwith $"unexpected input: {c}")
+
 let part1 input =
     let cursor = getStartCursor input
-
-    let path =
-        cursor
-        |> List.unfold (fun state ->
-            match input |> Grid.tryAt state.position with
-            | ValueSome('^' | '.') -> Some(state, state |> Cursor.walk)
-            | ValueSome '#' ->
-                let backtracked = state |> Cursor.walkBack
-                Some(backtracked, backtracked |> Cursor.turnRight)
-            | ValueNone -> None
-            | ValueSome c -> failwith $"unexpected input: {c}")
+    let path = walkPath cursor input
 
     path |> List.distinctBy _.position |> List.length
 
@@ -86,15 +87,17 @@ type SimulationResult =
 let part2 input =
     let cursor = getStartCursor input
 
+    // take path from part 1 and put obstructions on all visited fields except the first.
+    // All other fields can be ignored, as the guard never reaches them.
     let obstructionPossibilities =
-        input
-        |> Grid.allPos
-        |> Seq.filter (fun pos ->
-            pos <> cursor.position
-            && (input |> Grid.tryAt pos |> ValueOption.defaultValue '#') <> '#')
+        walkPath cursor input
+        |> Seq.map _.position
+        |> Seq.skip 1
+        |> Seq.distinct
         |> Seq.toList
 
     let simulate addedObstruction =
+        // Store only visited turns with the direction the guard is facing in. This is enough to detect a loop.
         let visitedTurns = HashSet<Cursor>()
 
         let rec loop state =
