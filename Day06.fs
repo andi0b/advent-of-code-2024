@@ -95,16 +95,16 @@ let part2 input =
         |> Seq.toList
 
     let simulate addedObstruction =
-        let visited = HashSet<Cursor>()
+        let visitedTurns = HashSet<Cursor>()
 
         let rec loop state =
-            if visited.Add state then
-                let atPosition =
-                    if state.position = addedObstruction then
-                        ValueSome '#'
-                    else
-                        input |> Grid.tryAt state.position
+            let atPosition =
+                if state.position = addedObstruction then
+                    ValueSome '#'
+                else
+                    input |> Grid.tryAt state.position
 
+            if atPosition <> ValueSome '#' || visitedTurns.Add state then
                 match atPosition with
                 | ValueSome('^' | '.') -> loop (state |> Cursor.walk)
                 | ValueSome '#' -> loop (state |> Cursor.walkBack |> Cursor.turnRight)
