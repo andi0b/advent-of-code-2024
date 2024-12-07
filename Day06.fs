@@ -1,6 +1,7 @@
 module aoc24.Day06
 
 open System.Collections.Generic
+open System.Diagnostics
 
 type Point = (struct (int * int))
 
@@ -83,14 +84,7 @@ type SimulationResult =
     | Exit
 
 let part2 input =
-    let cursor = getStartCursor input
-
-    // take path from part 1 and put obstructions on all visited fields except the first.
-    // All other fields can be ignored, as the guard never reaches them.
-    let obstructionPossibilities =
-        walkPath cursor input |> Seq.map _.position |> Seq.skip 1 |> Seq.distinct
-
-    let simulate addedObstruction =
+    let simulate cursor addedObstruction =
         // Store only visited turns with the direction the guard is facing in. This is enough to detect a loop.
         let visitedTurns = HashSet<Cursor>()
 
@@ -112,8 +106,16 @@ let part2 input =
 
         loop cursor
 
+    let startCursorAddedObstructionPairs =
+        walkPath (getStartCursor input) input
+        |> Seq.distinctBy _.position
+        |> Seq.pairwise
+        |> Seq.map (fun (first, second) -> (first, second.position))
+        |> Seq.toArray
+
     let simulationResults =
-        obstructionPossibilities |> Seq.toArray |> Array.Parallel.map simulate
+        startCursorAddedObstructionPairs
+        |> Array.Parallel.map (fun (cursor, obstruction) -> simulate cursor obstruction)
 
     simulationResults |> Array.filter _.IsLoop |> Array.length
 
