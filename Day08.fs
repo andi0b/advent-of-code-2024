@@ -20,7 +20,7 @@ type Grid(input: string array) =
                     | c -> yield (c, Point(x, y))
         }
 
-    member x.findGroupedAntennas =
+    member x.groupedAntennas =
         x.findAntennas
         |> List.ofSeq
         |> List.groupBy fst
@@ -34,13 +34,13 @@ let allPairs1 list =
 let part1 input =
     let grid = input |> Grid
 
-    let getFirstGenAntiNodes (a, b) =
+    let firstGenAntiNodes (a, b) =
         let vec = b .- a
         [ b .+ vec; a .- vec ]
 
     let antiNodes =
-        grid.findGroupedAntennas
-        |> List.collect (allPairs1 >> List.map getFirstGenAntiNodes)
+        grid.groupedAntennas
+        |> List.collect (allPairs1 >> List.map firstGenAntiNodes)
         |> List.collect id
 
     antiNodes |> List.distinct |> List.filter grid.inBounds |> List.length
@@ -59,7 +59,7 @@ let part2 input =
         find (.+) b @ find (.-) a
 
     let antiNodes =
-        grid.findGroupedAntennas
+        grid.groupedAntennas
         |> List.collect (allPairs1 >> List.map antiNodesInBounds)
         |> List.collect id
 
