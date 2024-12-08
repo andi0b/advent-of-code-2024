@@ -45,20 +45,18 @@ let part1 input =
 
     antiNodes |> List.distinct |> List.filter grid.inBounds |> List.length
 
-
 let part2 input =
-
     let grid = input |> Grid
 
     let antiNodesInBounds a b =
         let vec = b .- a
 
         let find op =
-            List.unfold (fun basePoint ->
-                let next = op basePoint vec
-                if grid.inBounds next then Some(next, next) else None)
+            List.unfold (function
+                | p when grid.inBounds p -> Some(p, op p vec)
+                | _ -> None)
 
-        a :: b :: find (.+) b @ find (.-) a
+        find (.+) b @ find (.-) a
 
     let antiNodes =
         grid.findGroupedAntennas
