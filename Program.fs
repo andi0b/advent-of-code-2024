@@ -6,8 +6,13 @@ open System.Threading.Tasks
 open FSharp.Text.RegexProvider
 open aoc24
 
+[<assembly: Xunit.CaptureTrace>]
+[<assembly: Xunit.CaptureConsole>]
+do ()
+
 let year = "2024"
 let inputDirectory = "inputs"
+
 let inputPath day =
     Path.Combine(inputDirectory, $"day%02u{day}.txt")
 
