@@ -10,24 +10,25 @@ let parse = Array.map parseLine
 let allCombinations times (array: 'a array) =
     let rec loop times list =
         seq {
-            for i = 0 to array.Length - 1 do
+            for item in array do
                 match times with
-                | 1 -> yield array.[i] :: list
-                | _ -> yield! loop (times - 1) (array.[i] :: list)
+                | 1 -> yield item :: list
+                | _ -> yield! loop (times - 1) (item :: list)
         }
 
     loop times []
 
 let findSolutions ops (expected, numbers) =
-    allCombinations (List.length numbers - 1) ops
+    ops
+    |> allCombinations (List.length numbers - 1)
     |> Seq.filter (fun ops ->
-        let result =
-            ((ops, numbers.Head), numbers.Tail)
-            ||> List.fold (fun (remainingOps, accumulate) next ->
-                (remainingOps.Tail, remainingOps.Head accumulate next))
-            |> snd
+        let rec fold =
+            function
+            | acc, number :: remainingNumbers, op :: remainingOps ->
+                fold (op acc number, remainingNumbers, remainingOps)
+            | acc, _, _ -> acc
 
-        result = expected)
+        expected = fold (numbers.Head, numbers.Tail, ops))
 
 let solve ops input =
     input
