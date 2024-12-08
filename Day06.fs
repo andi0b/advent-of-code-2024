@@ -1,7 +1,6 @@
 module aoc24.Day06
 
 open System.Collections.Generic
-open System.Diagnostics
 
 type Point = (struct (int * int))
 
