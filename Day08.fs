@@ -34,13 +34,13 @@ let allPairs1 list =
 let part1 input =
     let grid = input |> Grid
 
-    let getFirstGenAntiNodes a b =
+    let getFirstGenAntiNodes (a, b) =
         let vec = b .- a
         [ b .+ vec; a .- vec ]
 
     let antiNodes =
         grid.findGroupedAntennas
-        |> List.collect (fun group -> group |> allPairs1 |> List.map (TupleEx.apply getFirstGenAntiNodes))
+        |> List.collect (allPairs1 >> List.map getFirstGenAntiNodes)
         |> List.collect id
 
     antiNodes |> List.distinct |> List.filter grid.inBounds |> List.length
@@ -48,7 +48,7 @@ let part1 input =
 let part2 input =
     let grid = input |> Grid
 
-    let antiNodesInBounds a b =
+    let antiNodesInBounds (a, b) =
         let vec = b .- a
 
         let find op =
@@ -60,7 +60,7 @@ let part2 input =
 
     let antiNodes =
         grid.findGroupedAntennas
-        |> List.collect (fun group -> group |> allPairs1 |> List.map (TupleEx.apply antiNodesInBounds))
+        |> List.collect (allPairs1 >> List.map antiNodesInBounds)
         |> List.collect id
 
     antiNodes |> List.distinct |> List.length
