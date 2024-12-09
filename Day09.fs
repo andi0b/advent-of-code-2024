@@ -77,21 +77,18 @@ let part2 input =
             match matchingSpace, file with
             | Some(spos, Space slen), File(length = flen) ->
                 (spos, file)
-                :: if slen = flen then
-                       []
-                   else
+                :: if slen > flen then
                        [ (spos + flen, Space(slen - flen)) ]
+                   else
+                       []
                 @ (fpos, Space flen) :: memory
 
             | _ -> memory)
 
-    let rec fileChecksum pos fid len =
-        { pos .. pos + len - 1 } |> Seq.sumBy (fun i -> int64 i * int64 fid)
-
     (0L, reorderedMemory |> Seq.distinctBy fst)
     ||> Seq.fold (fun acc (pos, block) ->
         match block with
-        | File(fid, len) -> acc + fileChecksum pos fid len
+        | File(fid, len) -> acc + ({ pos .. pos + len - 1 } |> Seq.sumBy (fun i -> int64 i * int64 fid))
         | _ -> acc)
 
 let run = runReadAllText part1 part2
