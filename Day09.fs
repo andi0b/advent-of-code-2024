@@ -1,6 +1,6 @@
 module aoc24.Day09
 
-open Microsoft.FSharp.Core
+open FSharp.Stats.RowVector.Generic
 
 type Memory = int voption
 
@@ -16,10 +16,10 @@ let unfoldDiskMap input =
     }
 
 module SeqEx =
-    let valueIndexed = Seq.mapi (fun i v -> struct (i, v))
+    let valueIndexed (seq: 'a seq) =
+        seq |> Seq.mapi (fun i v -> struct (i, v))
 
 let part1 input =
-
     let unfolded = input |> unfoldDiskMap |> SeqEx.valueIndexed |> Array.ofSeq
 
     use reverseEnumerator =
@@ -45,7 +45,59 @@ let part1 input =
         |> int64)
 
 
-let part2 = (fun _ -> 0)
+
+[<Struct>]
+type MemoryBlock =
+    | File of id: int * length: int
+    | Space of length: int
+
+let part2 input =
+
+    let memoryMap =
+        let map = input |> Seq.map (fun c -> c - '0' |> int) |> Seq.toArray
+
+        (0, map |> SeqEx.valueIndexed)
+        ||> Seq.mapFold (fun offset struct (i, v) ->
+            match i % 2 with
+            | 0 -> (offset, File(id = i / 2, length = map.[i]))
+            | _ -> (offset, Space(length = map.[i]))
+            , offset + map.[i])
+        |> fst
+        |> Map
+
+    let revFileList = memoryMap |> Map.filter (fun _ v -> v.IsFile)
+
+    let reorderedMemoryMap =
+        (revFileList, memoryMap)
+        ||> Map.foldBack (fun fpos file map ->
+
+            let matchingSpace =
+                map
+                |> Map.toSeq
+                |> Seq.tryFind (fun (k, v) ->
+                    match (v, file) with
+                    | Space slen, File(length = flen) when k < fpos && slen >= flen -> true
+                    | _ -> false)
+
+            match matchingSpace, file with
+            | Some(spos, Space slen), File(length = flen) when slen = flen ->
+                map |> Map.add spos file |> Map.add fpos (Space flen)
+            | Some(spos, Space slen), File(length = flen) when slen > flen ->
+                map
+                |> Map.add spos file
+                |> Map.add (spos + flen) (Space(slen - flen))
+                |> Map.add fpos (Space flen)
+            | _ -> map)
+
+    let rec fileChecksum pos fid len =
+        { pos .. pos + len - 1 } |> Seq.sumBy (fun i -> int64 i * int64 fid)
+
+    (0L, reorderedMemoryMap)
+    ||> Map.fold (fun acc pos block ->
+        match block with
+        | File(fid, len) -> acc + fileChecksum pos fid len
+        | _ -> acc)
+
 
 let run = runReadAllText part1 part2
 
