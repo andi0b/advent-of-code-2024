@@ -2,23 +2,25 @@ module aoc24.Day09
 
 open Microsoft.FSharp.Core
 
-type Memory = int64 voption
+type Memory = int voption
 
 let unfoldDiskMap input =
-    let map = input |> Seq.map (fun c -> c - '0' |> int) |> Seq.toArray
+    let map = input |> Seq.map (fun c -> c - '0' |> byte) |> Seq.toArray
 
     seq {
         for i = 0 to map.Length - 1 do
-            let cur = map.[i]
-
-            for j = 1 to cur do
+            for j = 1uy to map.[i] do
                 match i % 2 with
-                | 0 -> Memory.Some(i / 2 |> int64)
+                | 0 -> Memory.Some(i / 2)
                 | _ -> Memory.None
     }
 
+module SeqEx =
+    let valueIndexed = Seq.mapi (fun i v -> struct (i, v))
+
 let part1 input =
-    let unfolded = input |> unfoldDiskMap |> Seq.indexed |> Array.ofSeq
+
+    let unfolded = input |> unfoldDiskMap |> SeqEx.valueIndexed |> Array.ofSeq
 
     use reverseEnumerator =
         unfolded
@@ -31,17 +33,16 @@ let part1 input =
     reverseEnumerator.MoveNext() |> ignore
 
     unfolded
-    |> Seq.sumBy (fun (i, v) ->
-        let ri, revFileId = reverseEnumerator.Current
+    |> Seq.sumBy (fun struct (i, fileId) ->
+        let revi, revFileId = reverseEnumerator.Current
 
-        if ri >= i then
-            match v with
-            | Memory.ValueSome fileId -> int64 i * fileId
-            | Memory.ValueNone ->
-                reverseEnumerator.MoveNext() |> ignore
-                int64 i * revFileId
-        else
-            0)
+        match fileId with
+        | _ when i > revi -> 0
+        | Memory.ValueSome fileId -> i * fileId
+        | Memory.ValueNone ->
+            reverseEnumerator.MoveNext() |> ignore
+            i * revFileId
+        |> int64)
 
 
 let part2 = (fun _ -> 0)
