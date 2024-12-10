@@ -68,6 +68,7 @@ let part2 input =
         ||> List.foldBack (fun (fpos, file) memory ->
             let matchingSpace =
                 memory
+                |> Seq.filter (fun (pos, _) -> pos < fpos)
                 |> Seq.distinctBy fst
                 |> Seq.tryFind (fun (spos, space) ->
                     match (space, file) with
@@ -85,11 +86,12 @@ let part2 input =
 
             | _ -> memory)
 
-    (0L, reorderedMemory |> Seq.distinctBy fst)
-    ||> Seq.fold (fun acc (pos, block) ->
+    reorderedMemory
+    |> Seq.distinctBy fst
+    |> Seq.sumBy (fun (pos, block) ->
         match block with
-        | File(fid, len) -> acc + ({ pos .. pos + len - 1 } |> Seq.sumBy (fun i -> int64 i * int64 fid))
-        | _ -> acc)
+        | File(fid, len) -> ({ pos .. pos + len - 1 } |> Seq.sumBy (fun i -> int64 i * int64 fid))
+        | Space _ -> 0)
 
 let run = runReadAllText part1 part2
 
