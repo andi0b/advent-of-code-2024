@@ -1,12 +1,8 @@
 module aoc24.Day11
 
-open System.Collections.Generic
-
 let parse = StringEx.splitC ' ' >> Array.map int64
 
-
 let solve blinks input =
-
     let initial = input |> parse |> Array.toList
 
     (initial, seq { 1..blinks })
@@ -25,19 +21,17 @@ let solve blinks input =
             | n -> (n * 2024L) :: results))
     |> List.length
 
-
 let solveFast blinks input =
-    // Dictionary<remaining blinks * input number, solution>
-    let memorizedSolutions = Dictionary<struct (int * int64), int64>()
+    // Dictionary of (remaining blinks * input number) -> solution
+    let memorizedSolutions =
+        System.Collections.Generic.Dictionary<struct (int * int64), int64>()
 
     let rec deep remainingBlinks num =
-
-        let key = struct(remainingBlinks, num)
+        let key = struct (remainingBlinks, num)
 
         match memorizedSolutions.TryGetValue(key) with
         | true, solution -> solution
         | false, _ ->
-
             let digits = 1 + (num |> float |> log10 |> int)
 
             let deepn =
@@ -52,22 +46,16 @@ let solveFast blinks input =
                     let factor = int digits / 2 |> pown 10L
                     let left = n / factor
                     let right = n - left * factor
-
                     (deepn left) + (deepn right)
-
                 | n -> deepn (n * 2024L)
 
             memorizedSolutions[key] <- solution
-
             solution
 
     input |> parse |> Array.sumBy (deep blinks)
 
-
 let part1 = solve 25
-
 let part2 = solveFast 75
-
 let run = runReadAllText part1 part2
 
 module tests =
@@ -78,7 +66,6 @@ module tests =
 
     [<Fact>]
     let ``Part 1 solve`` () = solve 25 example =! 55312
-
 
     [<Fact>]
     let ``Part 1 solveFast`` () = solveFast 25 example =! 55312
