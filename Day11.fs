@@ -2,6 +2,14 @@ module aoc24.Day11
 
 let parse = StringEx.splitC ' ' >> Array.map int64
 
+let inline countDigits num = 1 + (num |> float |> log10 |> int)
+
+let inline splitNum digits num =
+    let factor = int digits / 2 |> pown 10L
+    let left = num / factor
+    let right = num - left * factor
+    (left, right)
+
 let solve blinks input =
     let initial = input |> parse |> Array.toList
 
@@ -9,14 +17,12 @@ let solve blinks input =
     ||> Seq.fold (fun list _ ->
         ([], list)
         ||> List.fold (fun results next ->
-            let digits = 1 + (next |> float |> log10 |> int)
+            let digits = countDigits next
 
             match next with
             | 0L -> 1L :: results
             | n when System.Int64.IsEvenInteger(digits) ->
-                let factor = int digits / 2 |> pown 10L
-                let left = n / factor
-                let right = n - left * factor
+                let left, right = splitNum digits n
                 left :: right :: results
             | n -> (n * 2024L) :: results))
     |> List.length
@@ -32,7 +38,7 @@ let solveFast blinks input =
         match memorizedSolutions.TryGetValue(key) with
         | true, solution -> solution
         | false, _ ->
-            let digits = 1 + (num |> float |> log10 |> int)
+            let digits = countDigits num
 
             let deepn =
                 match remainingBlinks with
@@ -43,10 +49,8 @@ let solveFast blinks input =
                 match num with
                 | 0L -> deepn 1L
                 | n when System.Int64.IsEvenInteger(digits) ->
-                    let factor = int digits / 2 |> pown 10L
-                    let left = n / factor
-                    let right = n - left * factor
-                    (deepn left) + (deepn right)
+                    let left, right = splitNum digits n
+                    deepn left + deepn right
                 | n -> deepn (n * 2024L)
 
             memorizedSolutions[key] <- solution
