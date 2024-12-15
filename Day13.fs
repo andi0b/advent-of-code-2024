@@ -91,7 +91,7 @@ let part2 input =
     parse input
     |> Array.map (fun m ->
         { m with
-            Prize = m.Prize .+ (10000000000000L, 10000000000000L) })
+            Prize = m.Prize |> TupleEx.map ((+) 10000000000000L) })
     |> Array.choose findCheapestCombinationFast
     |> Array.sumBy (fun (a, b) -> a * 3L + b)
 

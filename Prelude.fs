@@ -99,19 +99,37 @@ module StringEx =
 
     let length (source: string) = source.Length
 
-module TupleEx =
-    let map f (a, b) = (f a, f b)
-    let map3 f (a, b, c) = (f a, f b, f c)
-    let mapFst f (a, b) = (f a, b)
-    let mapSnd f (a, b) = (a, f b)
+module SeqEx =
+    let valueIndexed (seq: 'a seq) =
+        seq |> Seq.mapi (fun i v -> struct (i, v))
 
-    let swap (a, b) = (b, a)
+    let fromEnumerator (enumerator: System.Collections.Generic.IEnumerator<'a>) =
+        seq {
+            while enumerator.MoveNext() do
+                enumerator.Current
+        }
+
+module TupleEx =
+    let inline map f (a, b) = (f a, f b)
+    let inline map3 f (a, b, c) = (f a, f b, f c)
+    let inline mapFst f (a, b) = (f a, b)
+    let inline mapSnd f (a, b) = (a, f b)
+
+    let inline swap (a, b) = (b, a)
 
     let toList (a, b) = [ a; b ]
     let toList3 (a, b, c) = [ a; b; c ]
 
-    let apply f (a, b) = f a b
-    let apply3 f (a, b, c) = f a b c
+    let inline apply f (a, b) = f a b
+    let inline apply3 f (a, b, c) = f a b c
+
+    let inline replicate x = (x, x)
+    let inline replicate3 x = (x, x, x)
+
+    let fromKeyValue (KeyValue(k, v)) = (k, v)
+
+    let toKeyValue (k, v) =
+        System.Collections.Generic.KeyValuePair(k, v)
 
     let fromList (l: 'a list) =
         match l with
@@ -121,4 +139,39 @@ module TupleEx =
     let fromList3 (l: 'a list) =
         match l with
         | [ a; b; c ] -> (a, b, c)
+        | _ -> failwith "TupleEx.fromList3: list must have exactly 3 elements"
+
+let inline vfst struct (a, _) = a
+let inline vsnd struct (_, b) = b
+
+module ValueTupleEx =
+    let inline map f struct (a, b) = struct (f a, f b)
+    let inline map3 f struct (a, b, c) = struct (f a, f b, f c)
+    let inline mapFst f struct (a, b) = struct (f a, b)
+    let inline mapSnd f struct (a, b) = struct (a, f b)
+
+    let inline swap struct (a, b) = struct (b, a)
+
+    let toList struct (a, b) = [ a; b ]
+    let toList3 struct (a, b, c) = [ a; b; c ]
+
+    let inline apply f struct (a, b) = f a b
+    let inline apply3 f struct (a, b, c) = f a b c
+
+    let inline replicate x = struct (x, x)
+    let inline replicate3 x = struct (x, x, x)
+
+    let fromKeyValue (KeyValue(k, v)) = struct (k, v)
+
+    let toKeyValue struct (k, v) =
+        System.Collections.Generic.KeyValuePair(k, v)
+
+    let fromList (l: 'a list) =
+        match l with
+        | [ a; b ] -> struct (a, b)
+        | _ -> failwith "TupleEx.fromList: list must have exactly 2 elements"
+
+    let fromList3 (l: 'a list) =
+        match l with
+        | [ a; b; c ] -> struct (a, b, c)
         | _ -> failwith "TupleEx.fromList3: list must have exactly 3 elements"
