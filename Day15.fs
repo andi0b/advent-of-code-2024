@@ -1,17 +1,18 @@
 module aoc24.Day15
 
+open FSharp.HashCollections
+
 type Point = (struct (float * float))
 let inline pOp f ((a, b): Point) ((c, d): Point) = Point(f a c, f b d)
 let inline (.+) a b = pOp (+) a b
 let inline (.-) a b = pOp (-) a b
 let inline (.*) a b = pOp (*) a b
-let inline (..*) ((x, y): Point) i = Point(x * i, y * i)
 let inline pfloor ((x, y): Point) = Point(floor x, y)
 
 type Grid =
     { robot: Point
-      boxes: Point Set
-      walls: Point Set }
+      boxes: Point HashSet
+      walls: Point HashSet }
 
 module Grid =
     let create (input: string array) =
@@ -26,14 +27,11 @@ module Grid =
             }
 
         { robot = find '@' |> Seq.exactlyOne
-          boxes = find 'O' |> Set
-          walls = find '#' |> Set }
+          boxes = find 'O' |> HashSet.ofSeq
+          walls = find '#' |> HashSet.ofSeq }
 
-    let boxScore { boxes = boxes } =
-        boxes |> Seq.sumBy (fun struct (x, y) -> x + y * 100.0)
-
-    let boxScoreScaled { boxes = boxes } =
-        boxes |> Seq.sumBy (fun struct (x, y) -> 2.0 * x + y * 100.0)
+    let boxScore xScale { boxes = boxes } =
+        boxes |> Seq.sumBy (fun struct (x, y) -> xScale * x + y * 100.0)
 
     let directionVector =
         function
@@ -48,57 +46,54 @@ module Grid =
         let nextPos = grid.robot .+ vec
 
         let (|Wall|Box|Empty|) p =
-            if grid.walls |> Set.contains p then Wall
-            elif grid.boxes |> Set.contains p then Box
+            if grid.boxes |> HashSet.contains p then Box
+            elif grid.walls |> HashSet.contains p then Wall
             else Empty
 
         let rec findFreeSpace p =
             let np = p .+ vec
 
             match np with
-            | Wall -> ValueNone
+            | Wall -> None
+            | Empty -> Some np
             | Box -> findFreeSpace np
-            | Empty -> ValueSome np
 
         match nextPos with
         | Wall -> grid
         | Empty -> { grid with robot = nextPos }
         | Box ->
             match findFreeSpace nextPos with
-            | ValueNone -> // box can't be pushed, do nothing
+            | None -> // box can't be pushed, do nothing
                 grid
-            | ValueSome fs -> // push box and move
+            | Some fs -> // move and push boxes (remove box at nextPos and add one to the free space)
                 { grid with
                     robot = nextPos
-                    boxes = grid.boxes |> Set.remove nextPos |> Set.add fs }
-
-    let scaleFactor = Point(0.5, 1)
-    let onex = Point(0.5, 0)
+                    boxes = grid.boxes |> HashSet.remove nextPos |> HashSet.add fs }
 
     let moveScaled direction grid =
-        let vec = directionVector direction .* scaleFactor
+        let vec = directionVector direction .* Point(0.5, 1)
         let nextPos = grid.robot .+ vec
 
         let (|Wall|Box|Empty|) p =
-            if grid.walls |> Set.contains (pfloor p) then
-                Wall
-            elif grid.boxes |> Set.contains p then
+            if grid.boxes |> HashSet.contains p then
                 Box p
-            elif grid.boxes |> Set.contains (p .- onex) then
-                Box(p .- onex)
+            elif grid.boxes |> HashSet.contains (p .- Point(0.5, 0)) then
+                Box(p .- Point(0.5, 0))
+            elif grid.walls |> HashSet.contains (pfloor p) then
+                Wall
             else
                 Empty
 
         let rec findMovableBoxes results boxes =
             let adjacent =
                 boxes
-                |> List.collect (fun b ->
+                |> List.collect (fun box ->
                     match direction with
-                    | '>' -> [ b .+ vec .+ vec ] // 2 steps to the right, to skip self
-                    | '<' -> [ b .+ vec ] // 1 step to the left
-                    | _ -> // above/below of self and 1 step to the right
-                        [ b .+ vec //
-                          b .+ vec .+ onex ])
+                    | '>' -> [ box .+ vec .+ vec ] // 2 steps to the right, to skip self
+                    | '<' -> [ box .+ vec ] // 1 step to the left
+                    | _ -> // above/below of self and 1 step (=0.5) to the right
+                        [ box .+ vec //
+                          box .+ vec .+ Point(0.5, 0) ])
 
             let hasAdjWalls, adjBoxes =
                 ((false, []), adjacent)
@@ -109,10 +104,10 @@ module Grid =
                     | Empty -> (walls, boxes))
 
             if hasAdjWalls then
-                ValueNone
+                None
             else
                 match adjBoxes with
-                | [] -> ValueSome(boxes @ results)
+                | [] -> Some(boxes @ results)
                 | _ -> findMovableBoxes (boxes @ results) (adjBoxes |> List.distinct)
 
         match nextPos with
@@ -120,14 +115,14 @@ module Grid =
         | Empty -> { grid with robot = nextPos }
         | Box b ->
             match findMovableBoxes [] [ b ] with
-            | ValueNone -> // b can't be pushed, do nothing
+            | None -> // b can't be pushed, do nothing
                 grid
-            | ValueSome boxes -> // push all connected boxes and move
-                let movedBoxes = boxes |> List.map (fun box -> box .+ vec) |> Set
+            | Some boxes -> // push all connected boxes and move
+                let movedBoxes = boxes |> List.map (fun box -> box .+ vec) |> HashSet.ofSeq
 
                 { grid with
                     robot = nextPos
-                    boxes = Set.difference grid.boxes (Set boxes) |> Set.union movedBoxes }
+                    boxes = HashSet.difference grid.boxes (HashSet.ofSeq boxes) |> HashSet.union movedBoxes }
 
 let parse lines =
     let emptyLineIndex = lines |> Array.findIndex (fun l -> l = "")
@@ -138,8 +133,8 @@ let parse lines =
 let solve mover scorer input =
     parse input ||> Array.fold (fun g i -> mover i g) |> scorer
 
-let part1 = solve Grid.move Grid.boxScore
-let part2 = solve Grid.moveScaled Grid.boxScoreScaled
+let part1 = solve Grid.move (Grid.boxScore 1)
+let part2 = solve Grid.moveScaled (Grid.boxScore 2)
 let run = runReadAllLines part1 part2
 
 module tests =

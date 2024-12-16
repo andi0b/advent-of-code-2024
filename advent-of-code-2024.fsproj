@@ -18,6 +18,7 @@
 
     <ItemGroup>
         <PackageReference Include="FParsec" Version="1.1.1" />
+        <PackageReference Include="FSharp.HashCollections" Version="0.3.4" />
         <PackageReference Include="FSharp.Stats" Version="0.5.0" />
         <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
         <PackageReference Include="Plotly.NET" Version="5.1.0" />
