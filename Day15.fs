@@ -65,8 +65,9 @@ module Grid =
         | Empty -> { grid with robot = nextPos }
         | Box ->
             match findFreeSpace nextPos with
-            | ValueNone -> grid
-            | ValueSome fs ->
+            | ValueNone -> // box can't be pushed, do nothing
+                grid
+            | ValueSome fs -> // push box and move
                 { grid with
                     robot = nextPos
                     boxes = grid.boxes |> Set.remove nextPos |> Set.add fs }
@@ -88,62 +89,57 @@ module Grid =
             else
                 Empty
 
-        let rec findMovableBoxes results nexts =
+        let rec findMovableBoxes results boxes =
             let adjacent =
-                nexts
+                boxes
                 |> List.collect (fun b ->
                     match direction with
-                    | '>' -> [ b .+ vec .+ vec ]
-                    | '<' -> [ b .+ vec  ]
-                    | _ -> [ b .+ vec; b .+ vec .+ onex ])
+                    | '>' -> [ b .+ vec .+ vec ] // 2 steps to the right, to skip self
+                    | '<' -> [ b .+ vec ] // 1 step to the left
+                    | _ -> // above/below of self and 1 step to the right
+                        [ b .+ vec //
+                          b .+ vec .+ onex ])
 
-            let walls, boxes =
-                (([], []), adjacent)
+            let hasAdjWalls, adjBoxes =
+                ((false, []), adjacent)
                 ||> List.fold (fun (walls, boxes) next ->
                     match next with
-                    | Wall -> (next :: walls, boxes)
+                    | Wall -> (true, boxes)
                     | Box b -> (walls, b :: boxes)
                     | Empty -> (walls, boxes))
 
-            if not walls.IsEmpty then
+            if hasAdjWalls then
                 ValueNone
-            elif not boxes.IsEmpty then
-                findMovableBoxes (nexts @ results) (boxes |> List.distinct)
             else
-                ValueSome(nexts @ results)
+                match adjBoxes with
+                | [] -> ValueSome(boxes @ results)
+                | _ -> findMovableBoxes (boxes @ results) (adjBoxes |> List.distinct)
 
         match nextPos with
         | Wall -> grid
         | Empty -> { grid with robot = nextPos }
         | Box b ->
             match findMovableBoxes [] [ b ] with
-            | ValueNone -> grid
-            | ValueSome boxes ->
-                let removed = boxes |> Set |> Set.difference grid.boxes
-                let added = boxes |> List.map (fun box -> box .+ vec) |> Set |> Set.union removed
+            | ValueNone -> // b can't be pushed, do nothing
+                grid
+            | ValueSome boxes -> // push all connected boxes and move
+                let movedBoxes = boxes |> List.map (fun box -> box .+ vec) |> Set
 
                 { grid with
                     robot = nextPos
-                    boxes = added }
+                    boxes = Set.difference grid.boxes (Set boxes) |> Set.union movedBoxes }
 
 let parse lines =
     let emptyLineIndex = lines |> Array.findIndex (fun l -> l = "")
     let box, instructions = lines |> Array.splitAt emptyLineIndex
 
-    (instructions |> Array.collect _.ToCharArray(), Grid.create box)
+    Grid.create box, instructions |> Array.collect _.ToCharArray()
 
-let part1 input =
-    let instructions, grid = parse input
+let solve mover scorer input =
+    parse input ||> Array.fold (fun g i -> mover i g) |> scorer
 
-    (grid, instructions) ||> Array.fold (fun g i -> Grid.move i g) |> Grid.boxScore
-
-let part2 input =
-    let instructions, grid = parse input
-
-    (grid, instructions)
-    ||> Array.fold (fun g i -> Grid.moveScaled i g)
-    |> Grid.boxScoreScaled
-
+let part1 = solve Grid.move Grid.boxScore
+let part2 = solve Grid.moveScaled Grid.boxScoreScaled
 let run = runReadAllLines part1 part2
 
 module tests =
@@ -193,7 +189,7 @@ module tests =
 
     [<Fact>]
     let ``parse example`` () =
-        let instructions, grid = parse example
+        let grid, instructions = parse example
 
         grid.robot =! Point(4, 4)
 
