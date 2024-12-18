@@ -88,33 +88,64 @@ type ChronoComputer(a: int64, b: int64, c: int64, ip: int, program: int array) =
 
 let part1 input =
     let mutable cc = ChronoComputer(input)
-    cc.run() |> Seq.map string |> String.concat ","
+    cc.run () |> Seq.map string |> String.concat ","
 
+
+type Match =
+    | PartialMatch
+    | FullMatch
+    | NoMatch
 
 // obviously too slow for real input
 let part2 input =
     let template = ChronoComputer(input)
     let program = template.Program |> Array.map int64
 
-    let mutable solution = -1L
-    let mutable i = 0L
-
-
-    while solution = -1 do
+    // print first few values with i formatted as binary, octal, hex and decimal to stdout, to recognize output pattern
+    (*
+    for i=0 to 0o1000 do
         let cc = template.Clone()
         cc.seta i
+        printfn $"""0b%12B{i}    0o%4o{i}    0x%4x{i}     %6i{i}: {cc.run () |> Seq.map string |> String.concat ","}"""
+    *)
 
-        if ((cc.run (), program) ||> Seq.compareWith Operators.compare) = 0 then
-            solution <- i
+    let revProg = template.Program |> Array.map int64 |> Array.rev
+
+    let runAndTestWith a =
+        let cc = template.Clone()
+        cc.seta a
+        let revOut = cc.run () |> Seq.rev |> Seq.toArray
+
+        //printfn $"""Trying a=0o%08o{a} with result (reverse): {revOut |> Seq.map string |> String.concat ","}"""
+
+        if (revOut, revProg) ||> Array.compareWith Operators.compare = 0 then
+            FullMatch
+        elif (revOut, revProg) ||> Seq.forall2 (=) then
+            PartialMatch
         else
-            i <- i + 1L
+            NoMatch
 
+    let rec findA (start: int64) =
+        //printfn $"findA start=0o%021o{start}"
 
-            let cc1 = template.Clone()
-            cc1.seta i
-            printfn $"""%32B{i}: {cc1.run () |> Seq.map string |> String.concat ","}"""
+        let rec loop =
+            function
+            | 0o10L -> None
+            | i ->
+                let a = (start <<< 3) + i
 
-    solution
+                match runAndTestWith a with
+                | FullMatch -> Some a
+                | NoMatch -> loop (i + 1L)
+                | PartialMatch when a <> start ->
+                    match findA a with
+                    | None -> loop (i + 1L)
+                    | x -> x
+                | PartialMatch -> loop (i + 1L)
+
+        loop 0L
+
+    findA 0 |> Option.defaultValue -1
 
 let run = runReadAllText part1 part2
 
