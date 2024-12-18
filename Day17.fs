@@ -67,7 +67,6 @@ type Match =
 
 let part2 input =
     let template = ChronoComputer.parse input
-    let program = template.program |> Array.map int64
 
     // print first few values with i formatted as binary, octal, hex and decimal to stdout, to recognize output pattern
     (*
@@ -92,7 +91,7 @@ let part2 input =
         else
             NoMatch
 
-    let rec findA (start: int64) =
+    let rec findA start =
         //printfn $"findA start=0o%021o{start}"
 
         let rec loop =
