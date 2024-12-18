@@ -28,26 +28,24 @@ let solve gridSize byteCount input =
             |> Array.collect Point.adjacent
             |> Array.filter (fun struct (x, y) -> x >= 0 && y >= 0 && x <= vfst gridSize && y <= vsnd gridSize)
             |> HashSet.ofSeq
-            |> (fun x -> HashSet.difference x visited)
-            |> (fun x -> HashSet.difference x corrupted)
+            |> (fun this -> HashSet.difference this visited)
 
-        if next |> HashSet.contains gridSize then
-            Some generation
-        elif next |> HashSet.count = 0 then
+        if next |> HashSet.count = 0 then
             None
+        elif next |> HashSet.contains gridSize then
+            Some generation
         else
             floodFill (generation + 1) (HashSet.union visited current) next
 
-    floodFill 1 HashSet.empty (HashSet.ofSeq [ Point(0, 0) ])
+    floodFill 1 corrupted (HashSet.ofSeq [ Point(0, 0) ])
 
-
-let solve2 gridSize input =
-    [| (input |> Array.length) .. -1 .. 0 |]
+let solve2 gridSize byteCount input =
+    [| (input |> Array.length) .. -1 .. byteCount |]
     |> Array.Parallel.tryFind (fun i -> (solve gridSize i input).IsSome)
     |> (fun x -> input[x.Value])
 
 let part1 = solve (Point(70, 70)) 1024 >> Option.get
-let part2 = solve2 (Point(70, 70))
+let part2 = solve2 (Point(70, 70)) 1024
 let run = runReadAllLines part1 part2
 
 module tests =
@@ -65,4 +63,4 @@ module tests =
 
     [<Fact>]
     let ``Part 2 example`` () =
-        example1 |> solve2 (Point(6, 6)) =! "6,1"
+        example1 |> solve2 (Point(6, 6)) 12 =! "6,1"
