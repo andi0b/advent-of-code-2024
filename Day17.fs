@@ -23,9 +23,6 @@ module ChronoComputer =
           program = m.p.Captures |> Seq.map (fun x -> int x.Value) |> Seq.toArray }
 
     let run cc =
-
-        let jmp2 () = cc.ip <- cc.ip + 2
-
         seq {
             while cc.ip < cc.program.Length do
 
@@ -45,14 +42,15 @@ module ChronoComputer =
                 | 7 (*cdv*) -> cc.c <- cc.a / (1L <<< (int combo))
                 | 1 (*bxl*) -> cc.b <- cc.b ^^^ operand
                 | 2 (*bst*) -> cc.b <- (combo &&& 0b111)
-                | 3 (*jnz*) -> if cc.a = 0 then jmp2 () else cc.ip <- operand
+                | 3 (*jnz*) when cc.a = 0 -> ()
+                | 3 (*jnz*) -> cc.ip <- operand
                 | 4 (*bxc*) -> cc.b <- cc.b ^^^ cc.c
                 | 5 (*out*) -> yield combo &&& 0b111
                 | _ -> failwith "huh?"
 
                 match opcode with
-                | 3 -> ()
-                | _ -> jmp2 ()
+                | 3 when cc.a <> 0 -> ()
+                | _ -> cc.ip <- cc.ip + 2
         }
 
 
