@@ -28,6 +28,7 @@ module ChronoComputer =
 
                 let opcode = cc.program[cc.ip]
                 let operand = cc.program[cc.ip + 1]
+                cc.ip <- cc.ip + 2
 
                 let combo =
                     match operand with
@@ -47,10 +48,6 @@ module ChronoComputer =
                 | 4 (*bxc*) -> cc.b <- cc.b ^^^ cc.c
                 | 5 (*out*) -> yield combo &&& 0b111
                 | _ -> failwith "huh?"
-
-                match opcode with
-                | 3 when cc.a <> 0 -> ()
-                | _ -> cc.ip <- cc.ip + 2
         }
 
 
