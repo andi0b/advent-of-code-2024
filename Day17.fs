@@ -5,101 +5,69 @@ open FSharp.Text.RegexExtensions
 
 type R = Regex< @"(?s)Register A: (?<A>\d+).*Register B: (?<B>\d+).*Register C: (?<C>\d+).*Program: ((?<p>\d)[,]?)*" >
 
+type ChronoComputer =
+    { mutable a: int64
+      mutable b: int64
+      mutable c: int64
+      mutable ip: int
+      program: int array }
 
-type ChronoComputer(a: int64, b: int64, c: int64, ip: int, program: int array) =
-
-    let mutable a = a
-    let mutable b = b
-    let mutable c = c
-    let mutable ip = ip
-
-    let jmp2 () = ip <- ip + 2
-
-    new(input) =
+module ChronoComputer =
+    let parse input =
         let m = R().TypedMatch(input)
 
-        ChronoComputer(
-            m.A.AsInt64,
-            m.B.AsInt64,
-            m.C.AsInt64,
-            0,
-            m.p.Captures |> Seq.map (fun x -> int x.Value) |> Seq.toArray
-        )
+        { a = m.A.AsInt64
+          b = m.B.AsInt64
+          c = m.C.AsInt64
+          ip = 0
+          program = m.p.Captures |> Seq.map (fun x -> int x.Value) |> Seq.toArray }
 
-    member this.Clone() = ChronoComputer(a, b, c, ip, program)
+    let run cc =
 
-    member this.seta newa = a <- newa
+        let jmp2 () = cc.ip <- cc.ip + 2
 
-    member this.Registers = [| a; b; c |]
-    member this.Program = program
-
-    member this.run() =
         seq {
-            while ip < program.Length do
+            while cc.ip < cc.program.Length do
 
-                let opcode = program[ip]
-                let operand = program[ip + 1]
+                let opcode = cc.program[cc.ip]
+                let operand = cc.program[cc.ip + 1]
 
                 let combo =
                     match operand with
-                    | 4 -> a
-                    | 5 -> b
-                    | 6 -> c
+                    | 4 -> cc.a
+                    | 5 -> cc.b
+                    | 6 -> cc.c
                     | x -> int64 x
 
-                //printfn $"op: {opcode} operand: {operand} combo: {combo}; A:{a} B:{b} C:{c}"
+                match opcode with
+                | 0 (*adv*) -> cc.a <- cc.a / (1L <<< (int combo))
+                | 6 (*bdv*) -> cc.b <- cc.a / (1L <<< (int combo))
+                | 7 (*cdv*) -> cc.c <- cc.a / (1L <<< (int combo))
+                | 1 (*bxl*) -> cc.b <- cc.b ^^^ operand
+                | 2 (*bst*) -> cc.b <- (combo &&& 0b111)
+                | 3 (*jnz*) -> if cc.a = 0 then jmp2 () else cc.ip <- operand
+                | 4 (*bxc*) -> cc.b <- cc.b ^^^ cc.c
+                | 5 (*out*) -> yield combo &&& 0b111
+                | _ -> failwith "huh?"
 
                 match opcode with
-                | 0 -> // adv
-                    a <- a / (1L <<< (int combo))
-                    jmp2 ()
-
-                | 6 -> // bdv
-                    b <- a / (1L <<< (int combo))
-                    jmp2 ()
-
-                | 7 -> // cdv
-                    c <- a / (1L <<< (int combo))
-                    jmp2 ()
-
-                | 1 -> // bxl
-                    b <- b ^^^ operand
-                    jmp2 ()
-
-                | 2 -> // bst
-                    b <- (combo &&& 0b111)
-                    jmp2 ()
-
-                | 3 -> // jnz
-                    if a = 0 then jmp2 () else ip <- operand
-
-                | 4 -> // bxc
-                    b <- b ^^^ c
-                    jmp2 ()
-
-                | 5 -> // out
-                    //printfn $"out: {combo % 8}"
-                    yield combo &&& 0b111
-                    jmp2 ()
-
-                | _ -> failwith "huh?"
+                | 3 -> ()
+                | _ -> jmp2 ()
         }
 
 
 let part1 input =
-    let mutable cc = ChronoComputer(input)
-    cc.run () |> Seq.map string |> String.concat ","
-
+    let mutable cc = ChronoComputer.parse input
+    cc |> ChronoComputer.run |> Seq.map string |> String.concat ","
 
 type Match =
     | PartialMatch
     | FullMatch
     | NoMatch
 
-// obviously too slow for real input
 let part2 input =
-    let template = ChronoComputer(input)
-    let program = template.Program |> Array.map int64
+    let template = ChronoComputer.parse input
+    let program = template.program |> Array.map int64
 
     // print first few values with i formatted as binary, octal, hex and decimal to stdout, to recognize output pattern
     (*
@@ -109,12 +77,11 @@ let part2 input =
         printfn $"""0b%12B{i}    0o%4o{i}    0x%4x{i}     %6i{i}: {cc.run () |> Seq.map string |> String.concat ","}"""
     *)
 
-    let revProg = template.Program |> Array.map int64 |> Array.rev
+    let revProg = template.program |> Array.map int64 |> Array.rev
 
     let runAndTestWith a =
-        let cc = template.Clone()
-        cc.seta a
-        let revOut = cc.run () |> Seq.rev |> Seq.toArray
+        let cc = { template with a = a }
+        let revOut = cc |> ChronoComputer.run |> Seq.rev |> Seq.toArray
 
         //printfn $"""Trying a=0o%08o{a} with result (reverse): {revOut |> Seq.map string |> String.concat ","}"""
 
@@ -167,25 +134,25 @@ Program: 0,1,5,4,3,0"
     [<Fact>]
     let ``Part 1 additional examples`` () =
         let run input =
-            let c = ChronoComputer(input)
-            c.run () |> Seq.toArray |> ignore
+            let c = ChronoComputer.parse input
+            c |> ChronoComputer.run |> Seq.toArray |> ignore
             c
 
         // If register C contains 9, the program 2,6 would set register B to 1.
-        test <@ (run "Register A: 0 Register B: 0 Register C: 9 Program: 2,6").Registers[1] = 1 @>
+        test <@ (run "Register A: 0 Register B: 0 Register C: 9 Program: 2,6").b = 1 @>
 
         // If register A contains 10, the program 5,0,5,1,5,4 would output 0,1,2.
         test <@ part1 "Register A: 10 Register B: 0 Register C: 0 Program: 5,0,5,1,5,4" = "0,1,2" @>
 
         // If register A contains 2024, the program 0,1,5,4,3,0 would output 4,2,5,6,7,7,7,7,3,1,0 and leave 0 in register A.
         test <@ part1 "Register A: 2024 Register B: 0 Register C: 0 Program: 0,1,5,4,3,0" = "4,2,5,6,7,7,7,7,3,1,0" @>
-        test <@ (run "Register A: 0 Register B: 0 Register C: 9 Program: 2,6").Registers[0] = 0 @>
+        test <@ (run "Register A: 0 Register B: 0 Register C: 9 Program: 2,6").a = 0 @>
 
         // If register B contains 29, the program 1,7 would set register B to 26.
-        test <@ (run "Register A: 0 Register B: 29 Register C: 0 Program: 1,7").Registers[1] = 26 @>
+        test <@ (run "Register A: 0 Register B: 29 Register C: 0 Program: 1,7").b = 26 @>
 
         // If register B contains 2024 and register C contains 43690, the program 4,0 would set register B to 44354.
-        test <@ (run "Register A: 0 Register B: 2024 Register C: 43690 Program: 4,0").Registers[1] = 44354 @>
+        test <@ (run "Register A: 0 Register B: 2024 Register C: 43690 Program: 4,0").b = 44354 @>
 
 
     let example2 =
@@ -200,6 +167,6 @@ Program: 0,3,5,4,3,0"
 
     [<Fact>]
     let ``parse example1`` () =
-        let c = ChronoComputer(example1)
-        c.Registers =! [| 729; 0; 0 |]
-        c.Program =! [| 0; 1; 5; 4; 3; 0 |]
+        let cc = ChronoComputer.parse example1
+        [| cc.a; cc.b; cc.c |] =! [| 729; 0; 0 |]
+        cc.program =! [| 0; 1; 5; 4; 3; 0 |]
