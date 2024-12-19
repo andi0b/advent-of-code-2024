@@ -1,4 +1,5 @@
-# advent-of-code-2024
+# advent-of-code-2024 
+[![Tests](https://github.com/andi0b/advent-of-code-2024/actions/workflows/dotnet.yml/badge.svg)](https://github.com/andi0b/advent-of-code-2024/actions/workflows/dotnet.yml)
 
 [Advent of Code 2024](https://adventofcode.com/2024/) Solutions in F#
 
