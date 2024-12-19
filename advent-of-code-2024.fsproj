@@ -21,7 +21,6 @@
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     </PropertyGroup>
     
-
     <ItemGroup>
         <PackageReference Include="FParsec" Version="1.1.1" />
         <PackageReference Include="FSharp.HashCollections" Version="0.3.4" />
@@ -37,6 +36,7 @@
         <PackageReference Include="xunit.v3" Version="0.6.0-pre.7" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0" />
         <PackageReference Include="Unquote" Version="7.0.0" />
+        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
     </ItemGroup>
     
     <ItemGroup>

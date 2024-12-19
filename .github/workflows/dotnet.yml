@@ -25,4 +25,8 @@ jobs:
     - name: Build
       run: dotnet build -p:test=true --no-restore
     - name: Test
-      run: dotnet test -p:test=true -p:TestingPlatformShowTestsFailure=true --no-build --verbosity normal
+      run: >
+        dotnet test -p:test=true -p:TestingPlatformShowTestsFailure=true
+        --configuration Release
+        --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
+        --no-build --verbosity normal
