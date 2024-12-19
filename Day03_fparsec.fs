@@ -63,13 +63,16 @@ module tests =
     let ``Part 2 example`` (input) = part2 input =! 48
 
 
-    [<Fact(Skip = "requires file")>]
-    let ``Part 1 realworld`` () =
-        System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part1 =! 156388521
+    let testfile = "../../../inputs/day03.txt"
+    let testfileExists = System.IO.File.Exists(testfile)
 
-    [<Fact(Skip = "requires file")>]
+    [<Fact(Skip = "requires test file", SkipUnless = nameof testfileExists)>]
+    let ``Part 1 realworld`` () =
+        System.IO.File.ReadAllText(testfile) |> part1 =! 156388521
+
+    [<Fact(Skip = "requires test file", SkipUnless = nameof testfileExists)>]
     let ``Part 2 realworld`` () =
-        System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part2 =! 75920122
+        System.IO.File.ReadAllText(testfile) |> part2 =! 75920122
 
 module ``FParsec Tests`` =
 
