@@ -79,10 +79,10 @@ module ``FParsec Tests`` =
             | Success(result, _, _) -> Result.Ok result
             | Failure(msg, _, _) -> Result.Error msg
 
-    [<Fact>]
+    [<Fact(Skip="requires file")>]
     let ``Test mul(123,456)`` () =
         test mul "mul(123,456)" =! Result.Ok(123, 456)
 
-    [<Fact>]
+    [<Fact(Skip="requires file")>]
     let ``Test mul(123,456`` () =
         test mul "mul(123,456]" <>! Result.Ok(123, 456)
