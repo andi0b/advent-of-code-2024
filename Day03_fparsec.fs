@@ -63,11 +63,11 @@ module tests =
     let ``Part 2 example`` (input) = part2 input =! 48
 
 
-    [<Fact>]
+    [<Fact(Skip = "requires file")>]
     let ``Part 1 realworld`` () =
         System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part1 =! 156388521
 
-    [<Fact>]
+    [<Fact(Skip = "requires file")>]
     let ``Part 2 realworld`` () =
         System.IO.File.ReadAllText("../../../inputs/day03.txt") |> part2 =! 75920122
 
@@ -79,10 +79,10 @@ module ``FParsec Tests`` =
             | Success(result, _, _) -> Result.Ok result
             | Failure(msg, _, _) -> Result.Error msg
 
-    [<Fact(Skip="requires file")>]
+    [<Fact>]
     let ``Test mul(123,456)`` () =
         test mul "mul(123,456)" =! Result.Ok(123, 456)
 
-    [<Fact(Skip="requires file")>]
+    [<Fact>]
     let ``Test mul(123,456`` () =
         test mul "mul(123,456]" <>! Result.Ok(123, 456)

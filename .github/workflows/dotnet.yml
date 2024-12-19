@@ -21,12 +21,12 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore -p:test=true 
+      run: dotnet restore -p:test=true
     - name: Build
       run: dotnet build -p:test=true --no-restore --configuration Release
     - name: Test
       run: >
-        dotnet test -p:test=true -p:TestingPlatformShowTestsFailure=true
+        dotnet test -p:test=true
         --configuration Release
         --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
         --no-build --verbosity normal

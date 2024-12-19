@@ -15,11 +15,6 @@
         <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
         <GenerateSelfRegisteredExtensions>false</GenerateSelfRegisteredExtensions>
     </PropertyGroup>
-
-    <PropertyGroup Condition="'$(test)' == 'true'">
-        <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
-        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-    </PropertyGroup>
     
     <ItemGroup>
         <PackageReference Include="FParsec" Version="1.1.1" />
