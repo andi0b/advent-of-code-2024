@@ -36,7 +36,43 @@ let part1 input =
 
     arrangements |> Array.filter canParse |> Array.length
 
-let part2 = (fun _ -> 0)
+let part2 input =
+    let towels, arrangements = parseInput input
+
+    let countPossibilities (arrangement: string) =
+
+        let rec loop result tails =
+            dprintfn $"Previous Results: {result}, Tails: %A{tails}"
+
+            let successes =
+                tails |> Array.sumBy (fun (count, tail) -> if tail = "" then count else 0L)
+
+            let nextTails =
+                tails
+                |> Array.collect (fun (count, tail) ->
+                    towels
+                    |> Array.choose (fun towel ->
+                        if tail.StartsWith(towel) then
+                            Some(count, tail.Substring(towel.Length))
+                        else
+                            None))
+
+            let compactedTails =
+                nextTails
+                |> Array.groupBy snd
+                |> Array.map (fun (key, value) -> (value |> Array.sumBy fst, key))
+
+            if nextTails.Length > 0 then
+                loop (result + successes) compactedTails
+            else
+                (result + successes)
+
+        dprintfn $"\n\nTrying arrangement: {arrangement}"
+
+        loop 0 [| 1L, arrangement |]
+
+    arrangements |> Array.Parallel.sumBy countPossibilities
+
 
 let run = runReadAllLines part1 part2
 
@@ -44,7 +80,7 @@ module tests =
     open Swensen.Unquote
     open Xunit
 
-    let example1 =
+    let example =
         [| "r, wr, b, g, bwu, rb, gb, br"
            ""
            "brwrr"
@@ -57,9 +93,7 @@ module tests =
            "bbrgwb" |]
 
     [<Fact>]
-    let ``Part 1 example`` () = part1 example1 =! 6
+    let ``Part 1 example`` () = part1 example =! 6
 
-    let example2 = null
-
-    [<Fact(Skip="")>]
-    let ``Part 2 example`` () = part2 example2 =! -1
+    [<Fact>]
+    let ``Part 2 example`` () = part2 example =! 16
