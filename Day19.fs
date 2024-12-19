@@ -1,5 +1,6 @@
 module aoc24.Day19
 
+open System
 open FParsec
 
 let parseInput (input: string array) =
@@ -40,20 +41,20 @@ let part2 input =
     let towels, arrangements = parseInput input
 
     let countPossibilities (arrangement: string) =
-
         let rec loop result tails =
-            dprintfn $"Previous Results: {result}, Tails: %A{tails}"
-
             let successes =
-                tails |> Array.sumBy (fun (count, tail) -> if tail = "" then count else 0L)
+                tails
+                |> Array.sumBy (fun (count, tail) -> if tail = arrangement.Length then count else 0L)
 
             let nextTails =
                 tails
                 |> Array.collect (fun (count, tail) ->
                     towels
                     |> Array.choose (fun towel ->
-                        if tail.StartsWith(towel) then
-                            Some(count, tail.Substring(towel.Length))
+                        let tailSpan = arrangement.AsSpan(tail)
+
+                        if MemoryExtensions.StartsWith(tailSpan, towel, StringComparison.Ordinal) then
+                            Some(count, tail + towel.Length)
                         else
                             None))
 
@@ -67,9 +68,7 @@ let part2 input =
             else
                 (result + successes)
 
-        dprintfn $"\n\nTrying arrangement: {arrangement}"
-
-        loop 0 [| 1L, arrangement |]
+        loop 0 [| 1, 0 |]
 
     arrangements |> Array.Parallel.sumBy countPossibilities
 
