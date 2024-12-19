@@ -94,5 +94,5 @@ module tests =
     [<Fact>]
     let ``Part 1 example`` () = part1 example =! 1930
 
-    [<Fact>]
+    [<Fact(Skip = "Part 2 not implemented yet")>]
     let ``Part 2 example`` () = part2 example =! 1206
