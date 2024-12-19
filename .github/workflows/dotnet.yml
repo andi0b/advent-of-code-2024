@@ -21,9 +21,9 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore -p:test=true
+      run: dotnet restore -p:test=true --configuration Release
     - name: Build
-      run: dotnet build -p:test=true --no-restore
+      run: dotnet build -p:test=true --no-restore --configuration Release
     - name: Test
       run: >
         dotnet test -p:test=true -p:TestingPlatformShowTestsFailure=true
