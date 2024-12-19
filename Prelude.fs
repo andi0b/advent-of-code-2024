@@ -175,3 +175,13 @@ module ValueTupleEx =
         match l with
         | [ a; b; c ] -> struct (a, b, c)
         | _ -> failwith "TupleEx.fromList3: list must have exactly 3 elements"
+
+[<AutoOpen>]
+type DebugPrint =
+    /// Like printf but only prints conditionally in DEBUG builds
+    [<Conditional("DEBUG")>]
+    static member dprintf format = printf format
+
+    /// Like printfn but only prints conditionally in DEBUG builds
+    [<Conditional("DEBUG")>]
+    static member dprintfn format = printfn format
