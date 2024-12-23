@@ -141,8 +141,51 @@ module TupleEx =
         | [ a; b; c ] -> (a, b, c)
         | _ -> failwith "TupleEx.fromList3: list must have exactly 3 elements"
 
-let inline vfst struct (a, _) = a
-let inline vsnd struct (_, b) = b
+[<AutoOpen>]
+module ValueTupleOperators =
+    /// fst for value tuples
+    let inline vfst struct (a, _) = a
+
+    // snd for value tuples
+    let inline vsnd struct (_, b) = b
+
+    ///||> for value tuples
+    let inline (||>%) struct (arg1, arg2) func = func arg1 arg2
+
+    ///|||> for value tuples
+    let inline (|||>%) struct (arg1, arg2, arg3) func = func arg1 arg2 arg3
+
+[<AutoOpen>]
+module Memorization =
+    open System.Collections.Generic
+    open System.Collections.Concurrent
+    open System.Threading
+
+    let inline private memorizeInner (cache: Dictionary<_, _>) f x =
+        match cache.TryGetValue x with
+        | true, y -> y
+        | _ ->
+            let v = f x
+            cache.Add(x, v)
+            v
+
+    /// Wrap f x into a cached version backed by a Dictionary (not thread safe)
+    let memorize f =
+        let cache = Dictionary()
+        memorizeInner cache f
+
+    /// Wrap f x into a cached version backed by a thread local Dictionary. Caches aren't shared between threads.
+    let memorizeThreadLocal f =
+        let cacheTl = new ThreadLocal<Dictionary<_, _>>(fun () -> Dictionary())
+
+        fun x ->
+            let cache = cacheTl.Value
+            memorizeInner cache f x
+
+    /// Wrap f x into a cached version backed by a ConcurrentDictionary. Caches shared between threads.
+    let memorizeConcurrent (f: 'a -> 'b) =
+        let cache = ConcurrentDictionary<'a, 'b>()
+        fun x -> cache.GetOrAdd(x, f)
 
 module ValueTupleEx =
     let inline map f struct (a, b) = struct (f a, f b)
