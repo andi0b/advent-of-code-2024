@@ -64,7 +64,7 @@ let part2 input =
             candidates
             |> Set.filter (fun n -> Set.isSubset nodeSet <| helper.findConnection n)
 
-        dprintfn "set length: %A, candidates: %A, connected: %A" nodeSet.Count candidates.Count connectedCandidates.Count
+        //dprintfn "set length: %A, candidates: %A, connected: %A" nodeSet.Count candidates.Count connectedCandidates.Count
 
         connectedCandidates |> Seq.map (fun n -> nodeSet |> Set.add n)
 
