@@ -1,9 +1,9 @@
 module aoc24.Day24
 
-open System
 open System.Collections.Generic
+open System.Diagnostics
 
-type Op =
+type BinaryOp =
     | And
     | Xor
     | Or
@@ -14,6 +14,14 @@ type Op =
         | "OR" -> Or
         | "XOR" -> Xor
         | _ -> failwith "unknown op"
+
+type Op = string * BinaryOp * string * string
+
+module Op =
+    let in1 ((in1, _, _, _): Op) = in1
+    let op ((_, op, _, _): Op) = op
+    let in2 ((_, _, in2, _): Op) = in2
+    let out ((_, _, _, out): Op) = out
 
 let parse input =
     let emptyLine = input |> Array.findIndex ((=) "")
@@ -30,7 +38,8 @@ let parse input =
         |> Array.skip 1
         |> Array.map (fun l ->
             let parts = l |> StringEx.splitS " "
-            (parts[0], parts[1] |> Op.parse, parts[2], parts[4]))
+            let inops = [| parts[0]; parts[2] |] |> Array.sort
+            (inops[0], parts[1] |> BinaryOp.parse, inops[1], parts[4]))
 
     startValues, connections
 
@@ -50,7 +59,6 @@ let part1 input =
         parse input
         |> TupleEx.mapFst (Array.map TupleEx.toKeyValue >> Dictionary)
         |> TupleEx.mapSnd Queue
-
 
     for in1, op, in2, out in dequeueEnumerable ops do
         let in1Known, in1Value = values.TryGetValue in1
@@ -81,7 +89,58 @@ let part1 input =
     bits |> Seq.mapi (fun i b -> b <<< i) |> Seq.reduce (|||)
 
 
-let part2 = (fun _ -> 0)
+// FML
+let part2 input =
+
+    let _, ops = parse input
+
+    let isIn = Op.in1 >> _.StartsWith("x")
+    let isOut = Op.out >> _.StartsWith("z")
+    let isFirstIn = Op.in1 >> ((=) "x00")
+    let isLastOut = Op.out >> ((=) "z45")
+
+    // outputs except z45 must be XORs, otherwise they are wrongly wired
+    let invalidOutputGates =
+        ops |> Array.filter (fun x -> isOut x && not <| isLastOut x && Op.op x <> Xor)
+
+    // XOR gates are always connected to either x/y on the in-side or z on the out side, otherwise wrongly wired
+    let invalidXorGates =
+        ops |> Array.filter (fun x -> Op.op x = Xor && not <| isIn x && not <| isOut x)
+
+    let insExceptFirst = ops |> Array.filter (fun x -> isIn x && not <| isFirstIn x)
+
+    // non-first XOR in gates must be connected to another XOR gate
+    let invalidXorIngates =
+        insExceptFirst
+        |> Array.filter (Op.op >> ((=) Xor))
+        |> Array.filter (fun x ->
+            ops
+            |> Array.exists (fun (in1, op, in2, _) -> op = Xor && (in1 = Op.out x || in2 = Op.out x))
+            |> not)
+
+    // non-first AND in gates must be connected to an OR gate
+    let invalidAndIngates =
+        insExceptFirst
+        |> Array.filter (Op.op >> ((=) And))
+        |> Array.filter (fun x ->
+            ops
+            |> Array.exists (fun (in1, op, in2, _) -> op = Or && (in1 = Op.out x || in2 = Op.out x))
+            |> not)
+
+    (*
+    printfn $"wrongOutputGates: %A{invalidOutputGates}"
+    printfn $"invalidXorGates: %A{invalidXorGates}"
+    printfn $"invalidXorIngates: %A{invalidXorIngates}"
+    printfn $"invalidAndIngates: %A{invalidAndIngates}"
+    *)
+
+    [| invalidOutputGates; invalidXorGates; invalidXorIngates; invalidAndIngates |]
+    |> Array.collect id
+    |> Array.map Op.out
+    |> Array.distinct
+    |> Array.sort
+    |> String.concat ","
+
 
 let run = runReadAllLines part1 part2
 
@@ -148,9 +207,7 @@ module tests =
            "y03 OR x01 -> nrd"
            "hwm AND bqk -> z03"
            "tgd XOR rvg -> z12"
-           "tnw OR pbm -> gnj"
-
-           |]
+           "tnw OR pbm -> gnj" |]
 
     [<Fact>]
     let ``Part 1 example 1`` () = part1 example1 =! 0b100
@@ -158,6 +215,75 @@ module tests =
     [<Fact>]
     let ``Part 1 example 2`` () = part1 example2 =! 2024
 
+    open System.IO
 
-    [<Fact>]
-    let ``Part 2 example`` () = part2 example2 =! -1
+    let pipeToCode extension (writerFun: StreamWriter -> unit) =
+        let tempFile = Path.GetTempFileName() + extension
+        use writer = new StreamWriter(File.OpenWrite tempFile)
+        writerFun writer
+        writer.Close()
+
+        use proc =
+            new Process(
+                StartInfo =
+                    ProcessStartInfo(
+                        "code",
+                        Arguments = tempFile,
+                        UseShellExecute = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    )
+            )
+
+        proc.Start() |> ignore
+        proc.WaitForExit()
+
+        ()
+
+
+    let plot values ops =
+        let (|StartsWith|_|) (str: string) (input: string) = input.StartsWith(str)
+
+        pipeToCode ".dot" (fun tw ->
+
+            fprintfn tw "digraph {"
+
+            let node name shape =
+                let color =
+                    match name with
+                    | StartsWith "x" -> "lightgreen"
+                    | StartsWith "y" -> "lightblue"
+                    | StartsWith "z" -> "yellow"
+                    | _ -> "white"
+
+                let shapem =
+                    match (shape, name) with
+                    | "", (StartsWith "x" | StartsWith "y") -> "invhouse"
+                    | "", StartsWith "z" -> "house"
+                    | "", _ -> "oval"
+                    | _ -> shape
+
+                fprintfn tw $"""    {name} [label="{name}" style=filled fillcolor={color} shape={shapem}]"""
+
+
+            for name, _ in values do
+                node name ""
+
+            for in1, op, in2, out in ops do
+                let arrow, shape, weight =
+                    match op with
+                    | And -> "dot", "triangle", 2
+                    | Or -> "odot", "invtriangle", 1
+                    | Xor -> "diamond", "diamond", 5
+
+                fprintfn tw $"""    {{{in1}, {in2}}} -> {out} [ weight={weight} ]"""
+                node out shape
+
+            fprintfn tw "}")
+
+    let testFile = "../../../inputs/day24.txt"
+    let testFileExists = File.Exists(testFile)
+
+    [<Fact(Skip = "requires test file", SkipUnless = nameof testFileExists)>]
+    let plotInput () =
+        let values, ops = File.ReadAllLines testFile |> parse
+        plot values ops
