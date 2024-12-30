@@ -7,7 +7,7 @@ type Schematics =
 let parseSchematic (input: string array) =
     input
     |> Seq.transpose
-    |> Seq.map (Seq.filter (fun c -> c = '#') >> Seq.length >> (+) -1)
+    |> Seq.map (Seq.filter ((=) '#') >> Seq.length >> (+) -1)
     |> Seq.toList
     |> (match input[0][0] with
         | '.' -> Key
