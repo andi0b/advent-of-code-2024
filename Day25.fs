@@ -1,23 +1,26 @@
 module aoc24.Day25
 
-let parseSchematic (input: string array) =
-    let isKey = input |> Seq.head |> Seq.head |> (=) '.'
+type Schematics =
+    | Key of int list
+    | Lock of int list
 
+let parseSchematic (input: string array) =
     input
     |> Seq.transpose
     |> Seq.map (Seq.filter (fun c -> c = '#') >> Seq.length >> (+) -1)
     |> Seq.toList
-    |> (fun x -> isKey, x)
+    |> (match input[0][0] with
+        | '.' -> Key
+        | _ -> Lock)
 
 let parse (input: string array) =
     input |> Array.chunkBySize 8 |> Array.map parseSchematic
 
 let part1 input =
-    input
-    |> parse
-    |> Array.partition fst
+    parse input
+    |> Array.partition _.IsKey
     ||> Array.allPairs
-    |> Array.map (TupleEx.map snd)
+    |> Array.map (TupleEx.map (fun (Key a | Lock a) -> a))
     |> Array.filter (TupleEx.apply <| List.forall2 (fun a b -> a + b <= 5))
     |> Array.length
 
@@ -79,8 +82,8 @@ module tests =
     [<Fact>]
     let ``parse example`` () =
         parse example
-        =! [| false, [ 0; 5; 3; 4; 3 ]
-              false, [ 1; 2; 0; 5; 3 ]
-              true, [ 5; 0; 2; 1; 3 ]
-              true, [ 4; 3; 4; 0; 2 ]
-              true, [ 3; 0; 2; 0; 1 ] |]
+        =! [| Lock [ 0; 5; 3; 4; 3 ]
+              Lock [ 1; 2; 0; 5; 3 ]
+              Key [ 5; 0; 2; 1; 3 ]
+              Key [ 4; 3; 4; 0; 2 ]
+              Key [ 3; 0; 2; 0; 1 ] |]
